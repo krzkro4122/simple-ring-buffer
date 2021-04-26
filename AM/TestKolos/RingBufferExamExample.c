@@ -32,22 +32,31 @@ void init(CharRingBufferPtr buffer) {
 //     Pamiętaj o tym, że każdy zapisany łańcuch znaków musi się kończyć zerem.
 //     Funkcja ma zwracać 'true' jeśli udało się wpisać dany łańcuch lub 'false' w przeciwnym razie.
 bool putText(CharRingBufferPtr buffer, const char* source) {
+
     int counter = 0;
     char temp[30];
+
     while (1){
+
         temp[counter] = source[counter];
-        if(source[counter] == '\0'){
+
+        if(source[counter] == '\0')
             break;
-        }
         counter++;
     }
+
     if(strlen(temp) > sizeof (buffer->data) - buffer->count)
         return false;
-    memcpy(buffer->data + buffer->count, temp, strlen(temp));    
-    // buffer->data[counter + buffer->count] = '\0';
-    buffer->head += counter +1;
-    buffer->head %= 30;
-    buffer->count += counter + 1;
+
+    for( int i = 0; i <= strlen(temp); i++){
+
+        if (i == strlen(temp))
+            buffer->data[buffer->head % 30] = '\0';
+
+        buffer->data[buffer->head % 30] = temp[i];
+        buffer->head++; 
+        buffer->count++;
+    }
     return true;
 }
 
@@ -55,16 +64,23 @@ bool putText(CharRingBufferPtr buffer, const char* source) {
 //     Odczytany łańcuch znaków kopiowany jest do 'destination'
 //     Funkcja ma zwracać 'true' jeśli udało się wyciągnąć jakiś łańcuch lub 'false' w przeciwnym razie.
 bool getText(CharRingBufferPtr buffer, char* destination) {
+
+    memset(destination, '\0', sizeof(buffer->data));
+
     char temp[30];    
-    for(int i = 0; i < sizeof(buffer->data) - buffer->tail; i++){
-        temp[i] = buffer->data[buffer->tail + i];
-        if( buffer->data[buffer->tail + i] == '\0'){
-            memcpy(destination, temp, strlen(temp));
-            destination[i] = '\0';
-            memset(buffer->data + buffer->tail, -1, strlen(temp) + 1);
-            buffer->tail += i + 1;
-            buffer->tail %= 30;
-            buffer->count -= i + 1;
+
+    for(int i = 0; buffer->tail < buffer->head; i++){
+
+        temp[i] = buffer->data[(buffer->tail + i) % 30];
+
+        if( buffer->data[(buffer->tail + i) % 30] == '\0'){
+            memcpy(destination, temp, strlen(temp));        
+
+            for ( int j = 0; j < strlen(temp) + 1; j++)
+                buffer->data[(buffer->tail + j) % 30] = -1;
+
+            buffer->tail += i + 1;    
+            buffer->count = (buffer->head % 30) - (buffer->tail % 30);
             return true;
         }
     }
