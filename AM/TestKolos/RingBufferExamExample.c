@@ -44,8 +44,8 @@ bool putText(CharRingBufferPtr buffer, const char* source) {
     if(strlen(temp) > sizeof (buffer->data) - buffer->count)
         return false;
     memcpy(buffer->data + buffer->count, temp, strlen(temp));    
-    buffer->data[counter + buffer->count] = '\0';
-    buffer->head += counter + 1;
+    // buffer->data[counter + buffer->count] = '\0';
+    buffer->head += counter +1;
     buffer->head %= 30;
     buffer->count += counter + 1;
     return true;
